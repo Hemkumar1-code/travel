@@ -66,11 +66,12 @@ export default function MapComponent({ activeUsers, selectedUser }) {
         zoomControl={false}
       >
         <MapController activeUsers={activeUsers} selectedUser={selectedUser} />
-        {/* OpenStreetMap — works at all zoom levels, shows buildings & road names */}
+        {/* Google Maps Roadmap — works at all zoom levels, shows buildings, roads, & labels clearly */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}
+          attribution='&copy; Google Maps'
+          url="https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+          subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+          maxZoom={20}
         />
 
         {activeUsers.map(user => {
