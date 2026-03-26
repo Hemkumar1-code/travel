@@ -14,6 +14,13 @@ export default function AdminDashboard() {
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '' });
   const [waNumbers, setWaNumbers] = useState([]);
   const [newWaNumber, setNewWaNumber] = useState('');
+  const [activeTab, setActiveTab] = useState('tracking');
+  const [trackingUsers, setTrackingUsers] = useState([]);
+  const [trips, setTrips] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+
+  // Computed selected user from list
+  const selectedUser = trackingUsers.find(u => u.id === selectedUserId);
 
   useEffect(() => {
     // Listen to active tracking data
@@ -41,11 +48,12 @@ export default function AdminDashboard() {
     });
 
     // Listen to settings
-    const settingsRef = ref(db, 'settings');
+    const settingsRef = ref(db, 'settings/whatsappNumbers');
     const unsubSettings = onValue(settingsRef, (snapshot) => {
       const data = snapshot.val();
-      if (data && data.whatsappNumbers) {
-        setWaNumbers(Object.values(data.whatsappNumbers));
+      if (data) {
+        const arr = Object.keys(data).map(id => ({ id, number: data[id] }));
+        setWaNumbers(arr);
       } else {
         setWaNumbers([]);
       }
@@ -65,9 +73,7 @@ export default function AdminDashboard() {
 
   const handleAddUser = async (e) => {
     e.preventDefault();
-    // In a real app, you'd use a cloud function to create the user in Firebase Auth.
-    // Here we'll just simulate it by adding to the tracking list as 'inactive'
-    const userRef = ref(db, `users/${Date.now()}`); // Mocking UID
+    const userRef = ref(db, `users/${Date.now()}`);
     await set(userRef, {
       name: newUser.name,
       role: 'field',
@@ -82,6 +88,10 @@ export default function AdminDashboard() {
     const newRef = push(ref(db, 'settings/whatsappNumbers'));
     await set(newRef, newWaNumber);
     setNewWaNumber('');
+  };
+
+  const handleDeleteWaNumber = async (id) => {
+    await remove(ref(db, `settings/whatsappNumbers/${id}`));
   };
 
   return (
@@ -143,8 +153,8 @@ export default function AdminDashboard() {
                 ) : trackingUsers.map(user => (
                   <button
                     key={user.id}
-                    onClick={() => setSelectedUser(user)}
-                    className={`w-full text-left p-4 rounded-xl border transition-all ${selectedUser?.id === user.id ? 'border-primary/50 bg-black/60 shadow-lg shadow-black/50' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
+                    onClick={() => setSelectedUserId(user.id)}
+                    className={`w-full text-left p-4 rounded-xl border transition-all ${selectedUserId === user.id ? 'border-primary/50 bg-black/60 shadow-lg shadow-black/50' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
                   >
                     <div className="flex items-center justify-between mb-2">
                        <h4 className="font-bold text-white text-sm">{user.name || 'Unknown User'}</h4>
@@ -220,11 +230,14 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    {waNumbers.map((num, idx) => (
-                      <div key={idx} className="flex justify-between items-center bg-black/20 p-2 rounded border border-white/5 text-xs">
-                        <span>{num}</span>
-                        <button className="text-danger/60 hover:text-danger">
-                          <Trash2 className="w-3" />
+                    {waNumbers.map((item) => (
+                      <div key={item.id} className="flex justify-between items-center bg-black/20 p-2 rounded border border-white/5 text-xs">
+                        <span>{item.number}</span>
+                        <button 
+                          onClick={() => handleDeleteWaNumber(item.id)}
+                          className="text-danger/60 hover:text-danger p-1"
+                        >
+                          <Trash2 className="w-3 h-3" />
                         </button>
                       </div>
                     ))}
