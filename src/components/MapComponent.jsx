@@ -8,13 +8,13 @@ function MapController({ activeUsers, selectedUser }) {
 
   useEffect(() => {
     if (selectedUser && selectedUser.currentLocation) {
-      map.flyTo([selectedUser.currentLocation.lat, selectedUser.currentLocation.lng], 16, {
+      map.flyTo([selectedUser.currentLocation.lat, selectedUser.currentLocation.lng], 17, {
         duration: 1.5,
       });
     } else if (activeUsers.length > 0 && firstUpdate.current) {
       const bounds = L.latLngBounds(activeUsers.filter(u => u.currentLocation).map(u => [u.currentLocation.lat, u.currentLocation.lng]));
       if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [50, 50] });
+        map.fitBounds(bounds, { padding: [80, 80] });
         firstUpdate.current = false;
       }
     }
@@ -51,49 +51,47 @@ export default function MapComponent({ activeUsers, selectedUser }) {
   };
 
   const defaultCenter = [20.5937, 78.9629];
-  
+
   return (
     <div className="w-full h-full relative z-0" style={{ filter: 'none' }}>
-      {/* Override any dark CSS that blankets the map */}
       <style>{`
         .leaflet-container { background: #e8eaed !important; }
         .leaflet-tile { filter: none !important; }
         .leaflet-layer { filter: none !important; }
       `}</style>
-      <MapContainer 
-        center={defaultCenter} 
-        zoom={5} 
+      <MapContainer
+        center={defaultCenter}
+        zoom={5}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
       >
         <MapController activeUsers={activeUsers} selectedUser={selectedUser} />
-        
-        {/* Google Maps style — bright colorful Voyager tiles */}
+        {/* OpenStreetMap — works at all zoom levels, shows buildings & road names */}
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/">CartoDB</a> | &copy; <a href="https://openstreetmap.org">OSM</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           maxZoom={19}
         />
 
         {activeUsers.map(user => {
           if (!user.currentLocation) return null;
-          
+
           return (
             <React.Fragment key={user.id}>
               {user.path && user.path.length > 1 && (
-                <Polyline 
-                  positions={user.path.map(p => [p.lat, p.lng])} 
-                  pathOptions={{ 
+                <Polyline
+                  positions={user.path.map(p => [p.lat, p.lng])}
+                  pathOptions={{
                     color: '#2563eb',
-                    weight: 5, 
+                    weight: 5,
                     opacity: 0.85,
                     lineJoin: 'round',
                     lineCap: 'round',
-                  }} 
+                  }}
                 />
               )}
 
-              <Marker 
+              <Marker
                 position={[user.currentLocation.lat, user.currentLocation.lng]}
                 icon={createCustomIcon(user.status, getStatusColor(user.status))}
               >
@@ -108,9 +106,9 @@ export default function MapComponent({ activeUsers, selectedUser }) {
                         {user.status === 'active' ? 'Tracking Active' : 'Offline'}
                       </span>
                       {user.currentLocation && (
-                         <span className="font-mono text-[10px] opacity-70">
-                           {user.currentLocation.lat.toFixed(6)}, {user.currentLocation.lng.toFixed(6)}
-                         </span>
+                        <span className="font-mono text-[10px] opacity-70">
+                          {user.currentLocation.lat.toFixed(6)}, {user.currentLocation.lng.toFixed(6)}
+                        </span>
                       )}
                     </div>
                   </div>
