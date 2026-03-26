@@ -29,31 +29,37 @@ export default function MapComponent({ activeUsers, selectedUser }) {
     return L.divIcon({
       className: 'custom-div-icon',
       html: `
-        <div style="position: relative; display: flex; height: 32px; width: 32px; align-items: center; justify-content: center; transform: translate(-50%, -50%);">
+        <div style="position: relative; display: flex; height: 40px; width: 40px; align-items: center; justify-content: center; transform: translate(-50%, -50%);">
           ${!isOffline ? `
-            <div style="position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 9999px; opacity: 0.5; background-color: ${color}; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+            <div style="position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 9999px; opacity: 0.4; background-color: ${color}; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
           ` : ''}
-          <div style="position: relative; display: inline-flex; border-radius: 9999px; height: 16px; width: 16px; border-width: 2px; border-color: white; border-style: solid; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); background-color: ${color};"></div>
+          <div style="position: relative; display: inline-flex; border-radius: 9999px; height: 20px; width: 20px; border-width: 3px; border-color: white; border-style: solid; box-shadow: 0 4px 12px rgba(0,0,0,0.4); background-color: ${color};"></div>
         </div>
         <style>
           @keyframes ping {
-            75%, 100% { transform: scale(2); opacity: 0; }
+            75%, 100% { transform: scale(2.2); opacity: 0; }
           }
         </style>
       `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
+      iconSize: [40, 40],
+      iconAnchor: [20, 20],
     });
   };
 
   const getStatusColor = (status) => {
-    return status === 'active' ? '#22c55e' : '#ef4444';
+    return status === 'active' ? '#16a34a' : '#ef4444';
   };
 
   const defaultCenter = [20.5937, 78.9629];
   
   return (
-    <div className="w-full h-full relative z-0">
+    <div className="w-full h-full relative z-0" style={{ filter: 'none' }}>
+      {/* Override any dark CSS that blankets the map */}
+      <style>{`
+        .leaflet-container { background: #e8eaed !important; }
+        .leaflet-tile { filter: none !important; }
+        .leaflet-layer { filter: none !important; }
+      `}</style>
       <MapContainer 
         center={defaultCenter} 
         zoom={5} 
@@ -62,9 +68,11 @@ export default function MapComponent({ activeUsers, selectedUser }) {
       >
         <MapController activeUsers={activeUsers} selectedUser={selectedUser} />
         
+        {/* Google Maps style — bright colorful Voyager tiles */}
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
+          attribution='&copy; <a href="https://carto.com/">CartoDB</a> | &copy; <a href="https://openstreetmap.org">OSM</a>'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          maxZoom={19}
         />
 
         {activeUsers.map(user => {
@@ -76,10 +84,11 @@ export default function MapComponent({ activeUsers, selectedUser }) {
                 <Polyline 
                   positions={user.path.map(p => [p.lat, p.lng])} 
                   pathOptions={{ 
-                    color: getStatusColor(user.status), 
-                    weight: 4, 
-                    opacity: 0.6,
-                    lineJoin: 'round'
+                    color: '#2563eb',
+                    weight: 5, 
+                    opacity: 0.85,
+                    lineJoin: 'round',
+                    lineCap: 'round',
                   }} 
                 />
               )}
